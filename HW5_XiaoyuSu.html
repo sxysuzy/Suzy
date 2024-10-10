@@ -1,0 +1,142 @@
+---
+title: "HW5"
+author: "Xiaoyu Su"
+date: "2024-10-05"
+output: html_document
+---
+
+```{r lib, include=FALSE}
+library(readr)
+library(tibble)
+library(dplyr)
+```
+
+```{r setup}
+baby_names_by_state <- read_csv("C:/Users/Suzy Su/Desktop/CMN496/HW6/baby-names-by-state.csv")
+head(baby_names_by_state)
+tail(baby_names_by_state)
+```
+
+## Question 1
+**[Data Import and Setup]** Import the dataset as a data frame (tibble) to your R workspace with correct variable specifications. Name your data frame *baby_names*.
+
+```{r Q1}
+baby_names <- baby_names_by_state %>%
+  mutate(
+    state = as.factor(state),
+    year = as.numeric(year),
+    name = as.character(name),
+    number = as.numeric(number),
+    sex = as.factor(sex)
+  )
+```
+
+## Question 2
+
+**[Data Summarization using *dplyr*]** Use dplyr functions such as filter(), select(), mutate(), summarise(), group_by(), count(), and arrange() to answer the following questions. Here’s a script that you can calculate the total number of babies in the dataset: baby_names |> summarise(total=sum(number, na.rm=T)):
+
+### 2.1 Top 10 Most Popular Girl Names (Overall)
+What are the 10 most popular names for a girl in the entire dataset?
+
+```{r Q2.1}
+unique(baby_names$sex)
+
+top_10_girl_names <- baby_names %>%
+  filter(sex == "girl") %>%                           
+  group_by(name) %>%
+  summarise(total = sum(number, na.rm = TRUE)) %>% 
+  arrange(desc(total)) %>%                         
+  slice_head(n = 10)                              
+
+top_10_girl_names
+```
+The top 10 most popular girl names in the dataset include "Jennifer," "Jessica," "Lisa," "Elizabeth," and others. These names reflect social trends at the time.
+
+### 2.2 Most Popular Boy Name in Illinois (1990s)
+What is the most popular name of a boy in Illinois born in the 1990’s (1990-1999)?
+
+```{r Q2.2}
+most_popular_boy_illinois_1990s <- baby_names %>%
+  filter(sex == "boy", state == "IL", year >= 1990, year <= 1999) %>% 
+  group_by(name) %>%                                               
+  summarise(total = sum(number, na.rm = TRUE)) %>%                 
+  arrange(desc(total)) %>%                                         
+  slice_head(n = 1)                                               
+
+print(most_popular_boy_illinois_1990s)
+```
+"Michael" has been a consistently popular name across the United States for many decades, particularly from the 1950s through the 1990s. During the 1990s, it was a name commonly associated with positive figures, such as sports stars like Michael Jordan, and musicians like Michael Jackson. 
+
+### 2.3 Unique Girl Names in 1993 and 2003
+How many unique names (n_distinct) were used for a girl in 1993 and in 2003?
+
+```{r Q2.3}
+unique_girl_names_1993 <- baby_names %>%
+  filter(sex == "girl", year == 1993) %>% 
+  summarise(unique_names = n_distinct(name)) 
+
+print(unique_girl_names_1993)
+
+unique_girl_names_2003 <- baby_names %>%
+  filter(sex == "girl", year == 2003) %>% 
+  summarise(unique_names = n_distinct(name)) 
+
+print(unique_girl_names_2003)
+```
+In 1993, there were 273 unique girl names, while in 2003, there were 308 unique girl names. This suggests an increase in the diversity of names used over the time.
+
+## Question 3
+**[Going Further with dplyr]** Try exploring the data with additional dplyr functions and answer these questions:
+
+### 3.1 What is the most common name for boys and girls born in your home state in 2008?
+```{r Q3.1}
+most_common_names_2008 <- baby_names %>%
+  filter(state == "IL", year == 2008) %>%         
+  group_by(sex, name) %>%                        
+  summarise(total = sum(number, na.rm = TRUE)) %>% 
+  arrange(sex, desc(total)) %>%                    
+  slice_head(n = 1)                               
+
+print(most_common_names_2008)
+```
+### 3.2 How have the top 5 girl names in California changed between the 1960s and 2000s?
+```{r Q3.2}
+top_5_girl_names_ca_1960s <- baby_names %>%
+  filter(state == "CA", sex == "girl", year >= 1960, year <= 1969) %>% 
+  group_by(name) %>%                                                   
+  summarise(total = sum(number, na.rm = TRUE)) %>%                     
+  arrange(desc(total)) %>%                                            
+  slice_head(n = 5)                                                   
+
+print(top_5_girl_names_ca_1960s)
+
+top_5_girl_names_ca_2000s <- baby_names %>%
+  filter(state == "CA", sex == "girl", year >= 2000, year <= 2009) %>% 
+  group_by(name) %>%                                                  
+  summarise(total = sum(number, na.rm = TRUE)) %>%                     
+  arrange(desc(total)) %>%                                             
+  slice_head(n = 5)                                                 
+
+print(top_5_girl_names_ca_2000s)
+```
+The flavor of how people gave their girls their names vary during the decades. These names reflect the naming trends of that era, from traditional to modern.
+
+## Question 4
+
+**[Analyzing Name Frequencies with count()]** Frequency of Boy and Girl Names in the 2000s
+
+```{r Q4}
+name_frequency_2000s_boy <- baby_names %>%
+  filter(year >= 2000 & year <= 2008 & sex =="boy") %>%     
+  count(sex, name, sort = TRUE)               
+
+print(name_frequency_2000s_boy)
+
+name_frequency_2000s_girl <- baby_names %>%
+  filter(year >= 2000 & year <= 2008 & sex =="girl") %>%     
+  count(sex, name, sort = TRUE)               
+
+print(name_frequency_2000s_girl)
+```
+The name on this ranking suggest a consistent popularity of traditional boy and girl's names across different states and time frames during this decade.
+
